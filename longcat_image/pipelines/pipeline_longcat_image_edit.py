@@ -118,11 +118,16 @@ class LongCatImageEditPipeline(
 
 
     @torch.inference_mode()
-    def encode_prompt(self, image, prompts):
+    def encode_prompt(self,
+                      image,
+                      prompts,
+                      device,
+                      dtype):
         raw_vl_input = self.image_processor_vl(images=image,return_tensors="pt")
         pixel_values = raw_vl_input['pixel_values']
         image_grid_thw = raw_vl_input['image_grid_thw']
 
+        prompts = [prompt.strip('"') if prompt.startswith('"') and prompt.endswith('"') else prompt for prompt in prompts]
         all_tokens = []
 
         for clean_prompt_sub, matched in split_quotation(prompts[0]):
@@ -181,7 +186,18 @@ class LongCatImageEditPipeline(
         text_ids = prepare_pos_ids(modality_id=0,
                                    type='text',
                                    start=(0, 0),
-                                   num_token=prompt_embeds.shape[1]).to(self.device)
+                                   num_token=prompt_embeds.shape[1]).to(device, dtype=dtype)
+
+        # ----------------------------------------------------------------------
+        # [VRAM OPTIMIZATION] Force Text Encoder Offload
+        # ----------------------------------------------------------------------
+        # The Qwen text encoder is massive (~15GB). After we extract the embeddings
+        # ("prompt_embeds"), we no longer need the encoder itself on the GPU.
+        # We aggressively move it to CPU and empty the cache to make space for
+        # the Transformer, which will be loaded next.
+        if hasattr(self, "text_encoder") and self.text_encoder is not None:
+            self.text_encoder.to("cpu")
+            torch.cuda.empty_cache()
 
         return prompt_embeds, text_ids
 
@@ -376,11 +392,15 @@ class LongCatImageEditPipeline(
 
         prompt_embeds, text_ids = self.encode_prompt(
             image=prompt_image,
-            prompts=prompt
+            prompts=prompt,
+            device=device,
+            dtype=torch.float64
         )
         negative_prompt_embeds, negative_text_ids = self.encode_prompt(
             image=prompt_image,
-            prompts=negative_prompt
+            prompts=negative_prompt, 
+            device = device, 
+            dtype=torch.float64
         )
 
         # 4. Prepare latent variables
@@ -436,6 +456,16 @@ class LongCatImageEditPipeline(
 
         # 6. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:
+            # ------------------------------------------------------------------
+            # [VRAM OPTIMIZATION] Manual Transformer Loading
+            # ------------------------------------------------------------------
+            # Instead of relying on `enable_model_cpu_offload` (which might be too
+            # slow or fragmented), we explicitly move the entire Transformer to
+            # the GPU (CUDA) *before* the loop starts. This ensures consistent
+            # performance during the denoising steps.
+            print("🚀 Loading Transformer to VRAM...")
+            self.transformer.to("cuda")
+
             for i, t in enumerate(timesteps):
                 if self.interrupt:
                     continue
@@ -444,7 +474,10 @@ class LongCatImageEditPipeline(
                 
                 latent_model_input = latents
                 if image_latents is not None:
-                    latent_model_input = torch.cat([latents, image_latents], dim=1)
+                    # [VRAM OPTIMIZATION] Device Safety
+                    # Ensure image_latents are on the same device as the main latents
+                    # to prevent "Expected all tensors to be on the same device" errors.
+                    latent_model_input = torch.cat([latents, image_latents.to(latents.device)], dim=1)
 
                 latent_model_input = torch.cat([latent_model_input] * 2) if self.do_classifier_free_guidance else latent_model_input
 
@@ -499,5 +532,13 @@ class LongCatImageEditPipeline(
 
         if not return_dict:
             return (image,)
+
+        # ----------------------------------------------------------------------
+        # [VRAM OPTIMIZATION] Cleanup
+        # ----------------------------------------------------------------------
+        # Once generation is complete, move the Transformer back to CPU to free
+        # up VRAM for the VAE (which runs next) or for future tasks.
+        self.transformer.to("cpu")
+        torch.cuda.empty_cache()
 
         return LongCatImagePipelineOutput(images=image)
