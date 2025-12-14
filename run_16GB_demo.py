@@ -8,6 +8,26 @@ import os
 import gc
 import traceback
 
+import sys
+import platform
+
+# ==============================================================================
+# Environment Info
+# ==============================================================================
+print("=" * 80)
+print(f"Python: {sys.version.split()[0]}")
+print(f"OS: {platform.platform()}")
+print(f"Torch: {torch.__version__}")
+if torch.cuda.is_available():
+    print(f"CUDA: {torch.version.cuda}")
+    print(f"Device Count: {torch.cuda.device_count()}")
+    for i in range(torch.cuda.device_count()):
+        props = torch.cuda.get_device_properties(i)
+        print(f"  [{i}] {props.name} | VRAM: {props.total_memory / 1024**3:.2f} GB")
+else:
+    print("CUDA: Not Available")
+print("=" * 80)
+
 # ==============================================================================
 # Configuration
 # ==============================================================================
