@@ -285,7 +285,7 @@ class LongCatImageEditPipeline(
         image_latents, image_latents_ids = None, None
 
         if image is not None:
-            image = image.to(device=self.device, dtype=dtype)
+            image = image.to(device="cuda", dtype=dtype)
             image_latents = self.vae.encode(image).latent_dist
             image_latents = image_latents.mode()
             image_latents = (image_latents - self.vae.config.shift_factor) *  self.vae.config.scaling_factor

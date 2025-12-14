@@ -22,17 +22,17 @@
 </div>
 
 ## Model Introduction
+
 We introduce **LongCat-Image**, a pioneering open-source and bilingual (Chinese-English) foundation
 model for image generation, designed to address core challenges in multilingual text rendering,
 photorealism, deployment efficiency, and developer accessibility prevalent in current leading models.
-
 
 <div align="center">
   <img src="assets/model_struct.jpg" width="90%" alt="LongCat-Image Model Architecture" />
 </div>
 
-
 ### Key Features
+
 - 🌟 **Exceptional Efficiency and Performance**: With only **6B parameters**, LongCat-Image surpasses numerous open-source models that are several times larger across multiple benchmarks, demonstrating the immense potential of efficient model design.
 - 🌟 **Superior Editing Performance**: LongCat-Image-Edit model achieves state-of-the-art performance among open-source models, delivering leading instruction-following and image quality with superior visual consistency.
 - 🌟 **Powerful Chinese Text Rendering**: LongCat-Image demonstrates superior accuracy and stability in rendering common Chinese characters compared to existing SOTA open-source models and achieves industry-leading coverage of the Chinese dictionary.
@@ -76,6 +76,9 @@ conda activate longcat-image
 # install other requirements
 pip install -r requirements.txt
 python setup.py develop
+
+# [Optional] Fix NVRTC environment issues (if you see "nvrtc: error")
+python scripts/fix_nvrtc.py
 ```
 
 ### Model Download
@@ -119,9 +122,8 @@ python setup.py develop
   </table>
 </div>
 
-
-
 Download models using huggingface-cli:
+
 ```shell
 pip install "huggingface_hub[cli]"
 huggingface-cli download meituan-longcat/LongCat-Image --local-dir ./weights/LongCat-Image
@@ -130,6 +132,7 @@ huggingface-cli download meituan-longcat/LongCat-Image-Edit --local-dir ./weight
 ```
 
 ### Run Text-to-Image Generation
+>
 > [!TIP]
 > Leveraging a stronger LLM for prompt refinement can further enhance image generation quality. Please refer to [inference_t2i.py](https://github.com/meituan-longcat/LongCat-Image/blob/main/scripts/inference_t2i.py#L28) for detailed usage instructions.
 
@@ -298,7 +301,6 @@ The quantitative evaluation results on public benchmarks demonstrate LongCat-Ima
   </table>
 </div>
 
-
 ### Human Evaluation (MOS)
 
 | **Model**         | **Alignment↑** | **Plausibility↑** | **Realism↑** | **Aesthetics↑** |
@@ -309,7 +311,8 @@ The quantitative evaluation results on public benchmarks demonstrate LongCat-Ima
 | **LongCat‑Image** | 3.99           | 3.48              | **3.60**     | 3.06            |
 
 ### Image Editing
-#### Performance comparison on CEdit-Bench and GEdit-Bench:
+
+#### Performance comparison on CEdit-Bench and GEdit-Bench
 
 <div style="overflow-x: auto; margin-bottom: 16px;">
   <table style="border-collapse: collapse; width: 100%;">
@@ -350,12 +353,11 @@ The quantitative evaluation results on public benchmarks demonstrate LongCat-Ima
   </table>
 </div>
 
-
 #### Human Evaluation (Win Rate)
 
 | **Models** | **Comprehensive Quality** | **Consistency** |
 |-----------|:-------------------------:|:-----------------:|
-| Nano Banana vs LongCat-Image-Edit | **60.8%** vs 39.2% | **53.9%** vs 46.1% | 
+| Nano Banana vs LongCat-Image-Edit | **60.8%** vs 39.2% | **53.9%** vs 46.1% |
 | Seedream 4.0 vs LongCat-Image-Edit | **56.9%** vs 43.1% | **56.3%** vs 43.7% |
 | Qwen-Image-Edit [2509] vs LongCat-Image-Edit | 41.3% vs **58.7%** | 45.8% vs **54.2%** |
 | FLUX.1 Kontext [Pro] vs LongCat-Image-Edit | 39.5% vs **60.5%** | 37% vs **63%** |
@@ -374,7 +376,6 @@ Community works are welcome! Please PR or inform us in Issue to add your work.
 - [ComfyUI Integration] Native support for ComfyUI workflow
 - [Diffusers Pipeline] HuggingFace Diffusers integration
 - [ComfyUI Longcat Image](https://github.com/sooxt98/comfyui_longcat_image) - Custom node extension for ComfyUI workflow.
-
 
 ## License Agreement
 
@@ -398,7 +399,7 @@ We kindly encourage citation of our work if you find it useful.
 @article{LongCat-Image,
       title={LongCat-Image Technical Report},
       author={Meituan LongCat Team and  Hanghang Ma and Haoxian Tan and Jiale Huang and Junqiang Wu and Jun-Yan He and Lishuai Gao and Songlin Xiao and Xiaoming Wei and Xiaoqi Ma and Xunliang Cai and Yayong Guan and Jie Hu},
-	    journal={arXiv preprint arXiv:2512.07584},
+     journal={arXiv preprint arXiv:2512.07584},
       year={2025}
 }
 ```
@@ -412,6 +413,7 @@ We would like to thank the contributors to the [FLUX.1](https://github.com/black
 Please contact us at <a href="mailto:longcat-team@meituan.com">longcat-team@meituan.com</a> or join our WeChat Group if you have any questions.
 
 #### WeChat Group
+
 <img src=assets/wechat_qrcode.png width="200px">
 
 ---

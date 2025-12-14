@@ -34,7 +34,7 @@ print("=" * 80)
 # Use bfloat16 as it is the native precision for the Flux model and modern GPUs.
 dtype = torch.bfloat16
 checkpoint_dir = './weights/LongCat-Image-Edit'
-input_image_path = "input.jpg"
+input_image_path = "input.png"
 output_image_path = "result_16gb_demo.png"
 
 print(f"🚀 Launching on device: {torch.cuda.get_device_name(0)}")
@@ -119,7 +119,7 @@ else:
     image = Image.open(input_image_path).convert("RGB")
 
 print("✨ Starting generation...")
-prompt = "make it look like a snowy winter day, high quality, 4k"
+prompt = "Replace the material of the coat with the material of the hat."
 generator = torch.Generator(device="cpu").manual_seed(42)
 
 try:
